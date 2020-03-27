@@ -1,0 +1,91 @@
+#include "graphe.h"
+#include <stdlib.h>
+#include "libbmp.h"
+#include <stdio.h>
+#include <time.h>
+
+void freeMat(Node** mat, int largeur)
+{
+	for (int i = 0; i < largeur; i++)
+	{
+		free(mat[i]);
+	}
+}
+
+Node** allocMat(int largeur, int hauteur)
+{
+	int** coups = NULL;
+	coups = (Node**)calloc(largeur, sizeof(Node*));
+	for (int i = 0; i <= largeur; i++)
+	{
+		coups[i] = (Node*)calloc(hauteur, sizeof(Node));
+	}
+
+	return coups;
+}
+
+Graphe* creerGraphe()
+{
+	Graphe* graphe = (Graphe*)calloc(1, sizeof(Graphe));
+
+	bmpInfoHeader InfoImage = Headerimage("./data/heightmap_.bmp");
+	color* couleur = InfoBMP("./data/heightmap_.bmp");
+
+	graphe->largeur = InfoImage.width;
+	graphe->hauteur = InfoImage.height;
+
+	graphe->pixel = allocMat(graphe->largeur, graphe->hauteur);
+
+	long k = 0;
+	for (int i = 0; i <= graphe->largeur; i++)
+	{
+		for (int j = 0; j <= graphe->hauteur; j++)
+		{
+			graphe->pixel[i][j].hauteur = couleur[k][0];
+			k++;
+		}
+	}
+
+	for (int i = 0; i < graphe->largeur; i++)
+	{
+		for (int j = 0; j < graphe->hauteur; j++)
+		{
+
+			if ((i + 1 <= graphe->largeur) && (graphe->pixel[i + 1][j].hauteur != 0) && (abs(graphe->pixel[i][j].hauteur - graphe->pixel[i + 1][j].hauteur) < 200)) {
+				graphe->pixel[i][j].voisin[0].cible = &(graphe->pixel[i + 1][j]);
+				graphe->pixel[i][j].voisin[0].difhauteur = abs(graphe->pixel[i][j].hauteur - graphe->pixel[i+1][j].hauteur);
+			} else {
+				graphe->pixel[i][j].voisin[0].cible = NULL;
+				graphe->pixel[i][j].voisin[0].difhauteur = 1000;
+			}
+
+			if ((i - 1 >=0) && (graphe->pixel[i - 1][j].hauteur != 0) && (abs(graphe->pixel[i][j].hauteur - graphe->pixel[i - 1][j].hauteur) < 200)) {
+				graphe->pixel[i][j].voisin[1].cible = &(graphe->pixel[i - 1][j]);
+				graphe->pixel[i][j].voisin[1].difhauteur = abs(graphe->pixel[i][j].hauteur - graphe->pixel[i - 1][j].hauteur);
+			} else {
+				graphe->pixel[i][j].voisin[1].cible = NULL;
+				graphe->pixel[i][j].voisin[1].difhauteur = 1000;
+			}
+
+			if ((j + 1 <= graphe->hauteur) && (graphe->pixel[i][j+1].hauteur != 0) && (abs(graphe->pixel[i][j].hauteur - graphe->pixel[i][j + 1].hauteur) < 200)) {
+				graphe->pixel[i][j].voisin[2].cible = &(graphe->pixel[i][j + 1]);
+				graphe->pixel[i][j].voisin[2].difhauteur = abs(graphe->pixel[i][j].hauteur - graphe->pixel[i][j+1].hauteur);
+			} else {
+				graphe->pixel[i][j].voisin[2].cible = NULL;
+				graphe->pixel[i][j].voisin[2].difhauteur = 1000;
+			}
+
+			if ((j - 1 >= 0) && (graphe->pixel[i][j-1].hauteur != 0) && (abs(graphe->pixel[i][j].hauteur - graphe->pixel[i][j - 1].hauteur) < 200)) {
+				graphe->pixel[i][j].voisin[3].cible = &(graphe->pixel[i][j - 1]);
+				graphe->pixel[i][j].voisin[3].difhauteur = abs(graphe->pixel[i][j].hauteur - graphe->pixel[i][j - 1].hauteur);
+			} else {
+				graphe->pixel[i][j].voisin[3].cible = NULL;
+				graphe->pixel[i][j].voisin[3].difhauteur = 1000;
+			}
+
+			printf("%d\n", graphe->pixel[i][j].voisin[0].difhauteur);
+		}
+	}
+
+	return graphe;
+}
